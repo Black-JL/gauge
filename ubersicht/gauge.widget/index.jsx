@@ -1,5 +1,5 @@
-// Gauge — live system dials for Übersicht (CPU / memory / disk / battery / net).
-// Reuses the minimal design. Needles ease via CSS transitions on each refresh.
+// Gauge — live system dials for Übersicht (CPU / memory / disk / battery).
+// Each dial shows its own reading inset at the bottom. Needles ease via CSS.
 
 export const command =
   `/usr/bin/python3 "$HOME/Library/Application Support/Übersicht/widgets/gauge.widget/gauge_stats.py"`;
@@ -17,7 +17,7 @@ function arcPath(r, f0, f1) {
   return `M ${x0} ${y0} A ${r} ${r} 0 ${a1 - a0 > 180 ? 1 : 0} 1 ${x1} ${y1}`;
 }
 
-// static face markup (everything except the moving needle + hub)
+// static face markup (everything except the moving needle, hub, and readout)
 function face(cfg) {
   let ticks = "", nums = "";
   for (let i = 0; i <= cfg.minor; i++) {
@@ -36,25 +36,24 @@ function face(cfg) {
     ? `<path d="${arcPath(124, cfg.redBand[0], cfg.redBand[1])}" stroke="#ff3b30" stroke-width="4" fill="none"/>` : "";
   const innerTrack = cfg.inner
     ? `<path d="${arcPath(76, 0, 1)}" stroke="#191919" stroke-width="3.5" fill="none" stroke-linecap="round"/>`
-      + `<text x="150" y="176" text-anchor="middle" font-size="7.5" letter-spacing="2" fill="#565656">PEAK CORE</text>` : "";
+      + `<text x="150" y="171" text-anchor="middle" font-size="7.5" letter-spacing="2" fill="#565656">PEAK CORE</text>` : "";
   const battOutline = cfg.battery
-    ? `<g transform="translate(150 176)">`
-      + `<text x="0" y="-11" text-anchor="middle" font-size="7" letter-spacing="1.8" fill="#8c8c8c">BATTERY</text>`
-      + `<rect x="-14" y="-6.5" width="26" height="13" rx="2.5" fill="none" stroke="#8c8c8c" stroke-width="1.2"/>`
-      + `<rect x="12" y="-3" width="2.6" height="6" rx="1" fill="#8c8c8c"/></g>` : "";
+    ? `<g transform="translate(150 168)">`
+      + `<text x="0" y="-10" text-anchor="middle" font-size="7" letter-spacing="1.6" fill="#8c8c8c">BATTERY</text>`
+      + `<rect x="-13" y="-6" width="24" height="12" rx="2.4" fill="none" stroke="#8c8c8c" stroke-width="1.1"/>`
+      + `<rect x="11" y="-2.6" width="2.4" height="5.2" rx="1" fill="#8c8c8c"/></g>` : "";
   return `<circle cx="150" cy="150" r="147" fill="none" stroke="#2a2a2a" stroke-width="1"/>`
     + `<circle cx="150" cy="150" r="143" fill="none" stroke="#161616" stroke-width="1.5"/>`
     + `<circle cx="150" cy="150" r="140" fill="#080808"/>`
     + red + ticks + nums + innerTrack + battOutline
-    + `<text x="150" y="120" text-anchor="middle" font-size="11" letter-spacing="4" fill="#8c8c8c">${cfg.faceName}</text>`
-    + `<text x="150" y="210" text-anchor="middle" font-size="8.5" letter-spacing="2.5" fill="#565656">${cfg.faceUnit}</text>`;
+    + `<text x="150" y="116" text-anchor="middle" font-size="11" letter-spacing="4" fill="#8c8c8c">${cfg.faceName}</text>`;
 }
 
-const CPU = { faceName: "CPU", faceUnit: "× 10 %  OVERALL", redBand: [0.85, 1], minor: 50, inner: true,
+const CPU = { faceName: "CPU", redBand: [0.85, 1], minor: 50, inner: true,
   majors: [0,1,2,3,4,5,6,7,8,9,10].map((n) => ({ f: n / 10, label: String(n) })) };
-const MEM = { faceName: "MEM", faceUnit: "% USED", redBand: [0.85, 1], minor: 50,
+const MEM = { faceName: "MEM", redBand: [0.85, 1], minor: 50,
   majors: [0,20,40,60,80,100].map((n) => ({ f: n / 100, label: String(n) })) };
-const DISK = { faceName: "DISK", faceUnit: "% FREE", redBand: [0, 0.15], minor: 40, battery: true,
+const DISK = { faceName: "DISK", redBand: [0, 0.15], minor: 40, battery: true,
   majors: [{ f: 0, label: "0" }, { f: 0.5, label: "50" }, { f: 1, label: "100" }] };
 const CPU_FACE = face(CPU), MEM_FACE = face(MEM), DISK_FACE = face(DISK);
 
@@ -75,15 +74,12 @@ function Dial({ faceHtml, cls, f, peak, batt, val, unit, sub }) {
             </g>
           )}
           {batt && (
-            <g transform="translate(150 176)">
-              <rect x={-11.5} y={-4} width={21 * clamp(batt.charge)} height={8} rx={1}
+            <g transform="translate(150 168)">
+              <rect x={-10.5} y={-3.6} width={19 * clamp(batt.charge)} height={7.2} rx={1}
                     fill={batt.charge < 0.15 ? "#ff3b30" : "#32d74b"} />
               {batt.charging && (
-                <path d="M 1.5 -5 L -3 0.5 L 0 0.5 L -1.5 5 L 3.5 -1 L 0.5 -1 Z" fill="#04270f" />
+                <path d="M 1.3 -4.5 L -2.7 0.4 L 0 0.4 L -1.3 4.5 L 3.2 -0.9 L 0.4 -0.9 Z" fill="#04270f" />
               )}
-              <text x={0} y={19} textAnchor="middle" fontSize="8" fill="#8c8c8c">
-                {Math.round(batt.charge * 100) + "%"}
-              </text>
             </g>
           )}
           <g style={needleStyle(angleFor(f))}>
@@ -93,30 +89,22 @@ function Dial({ faceHtml, cls, f, peak, batt, val, unit, sub }) {
           </g>
           <circle cx="150" cy="150" r="6.5" fill="#e8e8e8" />
           <circle cx="150" cy="150" r="2.4" fill="#000" />
+          <text x="150" y="228" textAnchor="middle" fontSize="30" fontWeight="300"
+                fill="#fff" style={{ fontVariantNumeric: "tabular-nums" }}>
+            {val}<tspan fontSize="15" fill="#8c8c8c" dx="2">{unit}</tspan>
+          </text>
+          <text x="150" y="248" textAnchor="middle" fontSize="12" fill="#6a6a6a"
+                letterSpacing="1.2">{sub}</text>
         </svg>
       </div>
-      <div className="val" style={val === "--" ? {} : {}}>
-        {val}<span className="u">{unit}</span>
-      </div>
-      <div className="sub">{sub}</div>
     </div>
   );
 }
-
-function fmtRate(bps) {
-  if (bps >= 1e6) return (bps / 1e6).toFixed(1) + " MB/s";
-  if (bps >= 1e3) return (bps / 1e3).toFixed(0) + " KB/s";
-  return Math.round(bps) + " B/s";
-}
-const barW = (bps) => Math.max(2, Math.min(100, (bps / 12.5e6) * 100)) + "%"; // vs ~100 Mbps
 
 export const render = ({ output }) => {
   let s = null;
   try { s = JSON.parse(output); } catch (e) { s = null; }
   if (!s || !s.cpu) return <div className="loading">Gauge starting…</div>;
-
-  const down = s.net ? s.net.down_bps : 0;
-  const up = s.net ? s.net.up_bps : 0;
 
   return (
     <div className="card">
@@ -132,18 +120,6 @@ export const render = ({ output }) => {
               val={Math.round(s.disk.free_frac * 100)} unit="%"
               sub={Math.round(s.disk.free_frac * s.disk.total_gb) + " GB free"} />
       </div>
-      <div className="net">
-        <div className="netcol">
-          <span className="arw dn">▼</span>
-          <span className="nval">{fmtRate(down)}</span>
-          <div className="bar"><div className="dnfill" style={{ width: barW(down) }} /></div>
-        </div>
-        <div className="netcol">
-          <span className="arw up">▲</span>
-          <span className="nval">{fmtRate(up)}</span>
-          <div className="bar"><div className="upfill" style={{ width: barW(up) }} /></div>
-        </div>
-      </div>
     </div>
   );
 };
@@ -154,26 +130,14 @@ export const className = `
   color: #fff; -webkit-font-smoothing: antialiased;
   .card { background: rgba(9,9,11,0.55); -webkit-backdrop-filter: blur(26px);
     backdrop-filter: blur(26px); border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 24px; padding: 22px 28px 18px; box-shadow: 0 24px 60px rgba(0,0,0,.55); }
+    border-radius: 24px; padding: 20px 26px 16px; box-shadow: 0 24px 60px rgba(0,0,0,.55); }
   .brand { letter-spacing: .52em; font-size: 10px; color: #8c8c8c; text-transform: uppercase;
-    text-align: center; margin-bottom: 14px; padding-left: .52em; }
-  .cluster { display: flex; align-items: center; justify-content: center; gap: 14px; }
+    text-align: center; margin-bottom: 8px; padding-left: .52em; }
+  .cluster { display: flex; align-items: center; justify-content: center; gap: 12px; }
   .gauge { display: flex; flex-direction: column; align-items: center; }
-  .gauge.side .dial { width: 118px; height: 118px; }
-  .gauge.center .dial { width: 172px; height: 172px; }
-  .gauge.side { transform: translateY(14px); }
+  .gauge.side .dial { width: 150px; height: 150px; }
+  .gauge.center .dial { width: 208px; height: 208px; }
+  .gauge.side { transform: translateY(18px); }
   .dial svg { display: block; width: 100%; height: 100%; }
-  .val { margin-top: 9px; font-size: 15px; font-weight: 200; font-variant-numeric: tabular-nums; }
-  .gauge.center .val { font-size: 20px; }
-  .val .u { font-size: .5em; color: #8c8c8c; margin-left: .2em; letter-spacing: .1em; }
-  .sub { font-size: 8px; letter-spacing: .18em; color: #565656; text-transform: uppercase; margin-top: 3px; }
-  .net { margin-top: 16px; padding-top: 13px; border-top: 1px solid rgba(255,255,255,0.08);
-    display: flex; justify-content: center; gap: 24px; }
-  .netcol { display: flex; align-items: center; gap: 8px; width: 150px; }
-  .arw { font-size: 9px; } .arw.dn { color: #32d74b; } .arw.up { color: #4d9fff; }
-  .nval { font-size: 12px; font-variant-numeric: tabular-nums; min-width: 62px; color: #e8e8e8; }
-  .bar { flex: 1; height: 3px; background: rgba(255,255,255,0.08); border-radius: 2px; overflow: hidden; }
-  .bar > div { height: 100%; border-radius: 2px; transition: width .9s ease-out; }
-  .dnfill { background: #32d74b; } .upfill { background: #4d9fff; }
   .loading { padding: 46px 60px; color: #565656; font-size: 12px; letter-spacing: .1em; }
 `;
