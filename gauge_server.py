@@ -191,10 +191,14 @@ function poll(){
 }
 poll();setInterval(poll,1000);
 
+// needle ballistics — lower = slower/heavier, more meter-like. Peak rises fast
+// (catch a spike), falls slowly (meter-style decay).
+var EASE=0.035, EASE_SLOW=0.06, PEAK_ATTACK=0.30, PEAK_RELEASE=0.035;
 function animate(){
   frame++;
-  CPU.cur+=(tgt.overall-CPU.cur)*0.12;CPU.peak+=(tgt.peak-CPU.peak)*0.30;
-  MEM.cur+=(tgt.mem-MEM.cur)*0.12;DISK.cur+=(tgt.disk-DISK.cur)*0.12;
+  CPU.cur+=(tgt.overall-CPU.cur)*EASE;
+  var dP=tgt.peak-CPU.peak; CPU.peak+=dP*(dP>0?PEAK_ATTACK:PEAK_RELEASE);
+  MEM.cur+=(tgt.mem-MEM.cur)*EASE_SLOW;DISK.cur+=(tgt.disk-DISK.cur)*EASE_SLOW;
   setN(CPU.needle,CPU.cur);setN(MEM.needle,MEM.cur);setN(DISK.needle,DISK.cur);
   if(CPU.needle2)setN(CPU.needle2,CPU.peak);
   if(CPU.peakled){var hot=CPU.peak>0.85;CPU.peakled.setAttribute('fill',hot?'#ff3b2a':'#3a0f0a');

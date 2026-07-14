@@ -120,7 +120,7 @@ function tick(){
     tMEM=Math.max(0.22,Math.min(0.6,tMEM+(Math.random()-0.5)*0.12));}
   for(let i=0;i<10;i++){const s=(i%4===0);coreLoads[i]+=(coreTargets[i]-coreLoads[i])*(s?0.35:0.12);}
   const overall=coreLoads.reduce((a,b)=>a+b,0)/10,peak=Math.max(...coreLoads);
-  CPU.cur+=(overall-CPU.cur)*0.06;CPU.peak+=(peak-CPU.peak)*0.45;
+  CPU.cur+=(overall-CPU.cur)*0.035;var dP=peak-CPU.peak;CPU.peak+=dP*(dP>0?0.30:0.035);
   MEM.cur+=(tMEM-MEM.cur)*0.05;DISK.cur+=(targets.disk-DISK.cur)*0.04;
   setN(MEM,MEM.cur);setN(CPU,CPU.cur);setN(DISK,DISK.cur);
   if(CPU.needle2)CPU.needle2.setAttribute('transform','rotate('+vA(Math.min(1,CPU.peak))+' '+PX+' '+PY+')');
