@@ -4,9 +4,32 @@ A minimal, beautiful macOS system monitor — CPU, memory, and disk shown as
 vintage-instrument dials. Inspired by Porsche gauge clusters and classic
 analog meters.
 
-This repo currently holds **design mockups** (self-contained HTML, no build
-step — just open in a browser). Each animates with plausible demo data plus
-a few real values so the look can be judged before wiring live system data.
+## The app
+
+`gauge.py` is the **live app** — a self-contained macOS system monitor built
+on the minimal design (`gauge_A_minimal.html`). No third-party dependencies:
+per-core CPU is read from the mach kernel via `ctypes`, memory from `vm_stat`,
+disk from `os`, battery from `pmset`. It serves a tiny local web UI and opens
+it in a chrome-less window; the server auto-quits a few seconds after that
+window closes.
+
+### Run it
+
+```sh
+python3 gauge.py            # run directly, or…
+./build_app.sh              # build Gauge.app, then double-click it in Finder
+```
+
+`build_app.sh` packages everything into `Gauge.app` (launcher + `gauge.py` +
+icon) so it launches from Finder. `create_icon.py` regenerates `Gauge.icns`
+(requires Pillow; the committed `.icns` means you usually don't need to).
+
+## Design mockups
+
+The `gauge_*_*.html` files are **self-contained design mockups** (no build step
+— just open in a browser). Each animates with plausible demo data plus a few
+real values so the look can be judged. Minimal (A) is the chosen direction and
+is what the live app implements.
 
 ## What each gauge shows
 
@@ -32,8 +55,6 @@ Target machine for the real values shown: **Apple M1 Pro, 10 cores (8P/2E),
 
 ## Roadmap
 
-- [ ] Wire the primary design to **live system data** (pure Python stdlib:
-  per-core CPU via mach `host_processor_info` through `ctypes`, memory via
-  `vm_stat`, disk via `os`, battery via `pmset` — no pip dependencies).
-- [ ] Package as a double-clickable `.app` that launches from Finder, matching
-  the companion Speed_Test tool.
+- [x] Wire the primary design to **live system data** (pure Python stdlib).
+- [x] Package as a double-clickable `.app` that launches from Finder.
+- [ ] Optional: install to `/Applications`, add a menu-bar entry, code-sign.
