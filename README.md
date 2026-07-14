@@ -13,16 +13,33 @@ disk from `os`, battery from `pmset`. It serves a tiny local web UI and opens
 it in a chrome-less window; the server auto-quits a few seconds after that
 window closes.
 
-### Run it
+### Two forms
+
+- **`Gauge.app`** — the windowed dashboard (three dials in a chrome-less
+  window). Pure stdlib; runs on the system `/usr/bin/python3`.
+- **`GaugeBar.app`** — a native **menu-bar** app (`NSStatusBar`). The menu bar
+  shows live CPU; the dropdown breaks out CPU (overall + peak core), memory,
+  disk, and battery, plus **Open Dashboard** and **Quit**. Requires PyObjC
+  (`import AppKit`) — bundled with the python.org framework Python; if missing,
+  `pip3 install pyobjc`.
+
+### Install / run
 
 ```sh
-python3 gauge.py            # run directly, or…
-./build_app.sh              # build Gauge.app, then double-click it in Finder
+./install.sh               # build both apps and copy them to /Applications
+python3 gauge.py           # or just run the dashboard directly
 ```
 
-`build_app.sh` packages everything into `Gauge.app` (launcher + `gauge.py` +
-icon) so it launches from Finder. `create_icon.py` regenerates `Gauge.icns`
-(requires Pillow; the committed `.icns` means you usually don't need to).
+`build_app.sh` / `build_bar.sh` package each `.app` (launcher + scripts + icon)
+for Finder. `create_icon.py` regenerates `Gauge.icns` (needs Pillow; the
+committed `.icns` means you usually don't need to).
+
+**Menu-bar difference for a Safari build:** the dashboard opens its UI in
+Chrome's app mode (a chrome-less window). Safari has no chrome-less mode from
+the CLI, so a Safari build would show the UI in a normal Safari window with the
+full address bar/toolbar — functional, but it reads as a web page, not an app.
+A truly native window would use a WebView (PyObjC), trading the zero-Chrome
+requirement for the PyObjC dependency.
 
 ## Design mockups
 
@@ -57,4 +74,5 @@ Target machine for the real values shown: **Apple M1 Pro, 10 cores (8P/2E),
 
 - [x] Wire the primary design to **live system data** (pure Python stdlib).
 - [x] Package as a double-clickable `.app` that launches from Finder.
-- [ ] Optional: install to `/Applications`, add a menu-bar entry, code-sign.
+- [x] Install to `/Applications`; add a native menu-bar app (`GaugeBar.app`).
+- [ ] Optional: code-sign / notarize; launch-at-login; menu-bar mini-graphs.
