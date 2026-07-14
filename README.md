@@ -41,6 +41,24 @@ full address bar/toolbar — functional, but it reads as a web page, not an app.
 A truly native window would use a WebView (PyObjC), trading the zero-Chrome
 requirement for the PyObjC dependency.
 
+## Always-on display (old iPad / phone / any browser)
+
+`gauge_server.py` is a persistent, LAN-reachable server that shows a full-screen
+version of the dials — point an old iPad or phone at it and leave it on as a
+dedicated dashboard. It binds `0.0.0.0` on a fixed port (default 8770), never
+auto-quits, and uses a compatibility-friendly page (XHR, SVG-attribute needles)
+that works back to iOS 10 (iPad mini 2+).
+
+```sh
+./install_server.sh        # runs it as a LaunchAgent (starts at login, auto-restarts)
+# or just: python3 gauge_server.py
+```
+
+Then on the iPad, in Safari, open `http://<mac-ip>:8770/` and **Add to Home
+Screen** for a chrome-less full-screen view. Set **Auto-Lock → Never** and keep
+it on a charger. Requires the Mac to be on and running the server; both devices
+on the same Wi-Fi. Stop with `launchctl bootout gui/$(id -u)/com.jaredblack.gaugeserver`.
+
 ## Desktop widget (Übersicht)
 
 `ubersicht/gauge.widget/` is a live desktop widget — the same dials, pinned to
