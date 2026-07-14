@@ -1,0 +1,181 @@
+<meta charset="utf-8">
+<title>GAUGE — 997 cluster</title>
+<style>
+  :root{
+    --ink:#f4f1e9;         /* warm instrument white */
+    --dim:#6a6558;
+    --dim2:#9a9384;
+    --red:#e02718;
+    --amber:#ff8a1e;
+  }
+  html,body{height:100%;margin:0;}
+  body{
+    background:radial-gradient(130% 130% at 50% 20%, #17161a 0%, #0a0a0c 60%, #050506 100%);
+    color:var(--ink);
+    font-family:'Futura','Avenir Next Condensed','Helvetica Neue',sans-serif;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    -webkit-font-smoothing:antialiased;user-select:none;overflow:hidden;
+  }
+  .brand{letter-spacing:.55em;font-size:12px;color:var(--dim2);text-transform:uppercase;
+    margin-bottom:28px;padding-left:.55em;}
+  .cluster{display:flex;align-items:center;justify-content:center;gap:6px;}
+  .gauge{display:flex;flex-direction:column;align-items:center;}
+  .gauge.side .dial{width:244px;height:244px;}
+  .gauge.center .dial{width:360px;height:360px;z-index:2;}
+  .gauge.side{transform:translateY(28px);}
+  .gauge.side#gauge-mem{margin-right:-24px;}
+  .gauge.side#gauge-disk{margin-left:-24px;}
+  .dial{position:relative;filter:drop-shadow(0 16px 30px rgba(0,0,0,.65));}
+  svg{display:block;width:100%;height:100%;}
+  .readout{margin-top:16px;text-align:center;}
+  .val{font-size:26px;letter-spacing:.05em;color:var(--ink);font-variant-numeric:tabular-nums;}
+  .center .val{font-size:34px;}
+  .val .u{font-size:.46em;color:var(--dim2);letter-spacing:.14em;margin-left:.25em;}
+  .sub{font-size:10.5px;letter-spacing:.26em;color:var(--dim);text-transform:uppercase;margin-top:6px;}
+  .footer{margin-top:36px;display:flex;gap:42px;font-size:10.5px;letter-spacing:.26em;
+    color:var(--dim);text-transform:uppercase;}
+  .footer b{color:var(--dim2);}
+</style>
+
+<div class="brand">Gauge</div>
+<div class="cluster">
+  <div class="gauge side" id="gauge-mem"><div class="dial"></div>
+    <div class="readout"><div class="val">—</div><div class="sub">Memory</div></div></div>
+  <div class="gauge center" id="gauge-cpu"><div class="dial"></div>
+    <div class="readout"><div class="val">—</div><div class="sub">CPU</div></div></div>
+  <div class="gauge side" id="gauge-disk"><div class="dial"></div>
+    <div class="readout"><div class="val">—</div><div class="sub">Disk</div></div></div>
+</div>
+<div class="footer">
+  <span>Apple <b>M1 Pro</b></span><span><b>10</b> Cores</span>
+  <span><b>32</b> GB</span><span id="clock">—</span>
+</div>
+
+<script>
+const CX=150,CY=150,START=135,SWEEP=270;
+const d2r=d=>d*Math.PI/180;
+const polar=(r,d)=>[CX+r*Math.cos(d2r(d)),CY+r*Math.sin(d2r(d))];
+const angleFor=f=>START+f*SWEEP;
+function arcPath(r,f0,f1){const a0=angleFor(f0),a1=angleFor(f1),[x0,y0]=polar(r,a0),[x1,y1]=polar(r,a1);
+  return `M ${x0} ${y0} A ${r} ${r} 0 ${(a1-a0)>180?1:0} 1 ${x1} ${y1}`;}
+
+function buildDial(cfg){
+  let ticks='',nums='',guilloche='';
+  // faint concentric guilloche rings
+  for(let r=44;r<=116;r+=9)
+    guilloche+=`<circle cx="150" cy="150" r="${r}" fill="none" stroke="#141414" stroke-width="0.6"/>`;
+  const minors=cfg.minorCount||0;
+  for(let i=0;i<=minors;i++){const f=i/minors,a=angleFor(f),[x0,y0]=polar(121,a),[x1,y1]=polar(115,a);
+    ticks+=`<line x1="${x0}" y1="${y0}" x2="${x1}" y2="${y1}" stroke="#4a463c" stroke-width="1"/>`;}
+  cfg.majors.forEach(m=>{const a=angleFor(m.f),inRed=cfg.redBand&&m.f>=cfg.redBand[0]-1e-6&&m.f<=cfg.redBand[1]+1e-6;
+    const col=inRed?'var(--red)':'var(--ink)';const [x0,y0]=polar(122,a),[x1,y1]=polar(105,a);
+    ticks+=`<line x1="${x0}" y1="${y0}" x2="${x1}" y2="${y1}" stroke="${col}" stroke-width="2.6" stroke-linecap="round"/>`;
+    const [tx,ty]=polar(88,a);
+    nums+=`<text x="${tx}" y="${ty+5.5}" text-anchor="middle" font-size="17" fill="${col}"
+      font-family="Futura,'Avenir Next Condensed',sans-serif" letter-spacing="0.5">${m.label}</text>`;});
+  // small real-battery indicator, lives INSIDE the disk dial
+  let batt='';
+  if(cfg.battery)batt=`<g class="battind" transform="translate(150 175)">
+    <text x="0" y="-11" text-anchor="middle" font-size="7" letter-spacing="1.8" fill="var(--dim)">BATTERY</text>
+    <rect x="-14" y="-6.5" width="26" height="13" rx="2.5" fill="none" stroke="var(--dim2)" stroke-width="1.2"/>
+    <rect x="12" y="-3" width="2.6" height="6" rx="1" fill="var(--dim2)"/>
+    <rect class="battfill" x="-11.5" y="-4" width="21" height="8" rx="1" fill="#37c85a"/>
+    <path class="battbolt" d="M 1.5 -5 L -3 0.5 L 0 0.5 L -1.5 5 L 3.5 -1 L 0.5 -1 Z" fill="#0a2e15"/>
+    <text class="battpct" x="0" y="19" text-anchor="middle" font-size="8" letter-spacing="0.5"
+      fill="var(--dim2)" font-variant-numeric="tabular-nums">100%</text></g>`;
+  let innerTrack='',innerNeedle='';
+  if(cfg.inner){
+    innerTrack=`<path d="${arcPath(76,0,1)}" stroke="#201d16" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+      <path class="innerfill" d="${arcPath(76,0,0.002)}" stroke="var(--amber)" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+      <text x="150" y="176" text-anchor="middle" font-size="7.5" letter-spacing="2" fill="var(--dim)">PEAK CORE</text>`;
+    innerNeedle=`<g class="needle2" transform="rotate(${angleFor(0)} 150 150)">
+      <polygon points="214,150 150,149.1 150,150.9" fill="var(--amber)"/></g>`;
+  }
+  const red=cfg.redBand?`<path d="${arcPath(124,cfg.redBand[0],cfg.redBand[1])}" stroke="var(--red)" stroke-width="6" fill="none"/>`:'';
+  return `
+  <svg viewBox="0 0 300 300">
+    <defs>
+      <radialGradient id="bez" cx="42%" cy="34%" r="72%">
+        <stop offset="0%" stop-color="#f2f2f2"/><stop offset="20%" stop-color="#c2c2c2"/>
+        <stop offset="46%" stop-color="#5f5f5f"/><stop offset="72%" stop-color="#d0d0d0"/>
+        <stop offset="90%" stop-color="#454545"/><stop offset="100%" stop-color="#1e1e1e"/></radialGradient>
+      <radialGradient id="face" cx="50%" cy="40%" r="75%">
+        <stop offset="0%" stop-color="#1a1a1a"/><stop offset="65%" stop-color="#0d0d0d"/><stop offset="100%" stop-color="#040404"/></radialGradient>
+      <radialGradient id="hub" cx="40%" cy="34%" r="70%">
+        <stop offset="0%" stop-color="#f4f4f4"/><stop offset="48%" stop-color="#9a9a9a"/><stop offset="100%" stop-color="#242424"/></radialGradient>
+      <filter id="lume" x="-40%" y="-40%" width="180%" height="180%">
+        <feDropShadow dx="0" dy="0" stdDeviation="1.4" flood-color="#fff" flood-opacity="0.25"/>
+        <feDropShadow dx="0" dy="1.4" stdDeviation="2" flood-color="#000" flood-opacity="0.55"/></filter>
+    </defs>
+    <circle cx="150" cy="150" r="148" fill="url(#bez)"/>
+    <circle cx="150" cy="150" r="134" fill="#0a0a0a"/>
+    <circle cx="150" cy="150" r="131" fill="url(#face)"/>
+    ${guilloche}${red}${ticks}${nums}${batt}${innerTrack}
+    <text x="150" y="118" text-anchor="middle" font-size="12" letter-spacing="3.5" fill="var(--dim2)">${cfg.faceName}</text>
+    <text x="150" y="208" text-anchor="middle" font-size="9" letter-spacing="2.5" fill="var(--dim)">${cfg.faceUnit||''}</text>
+    ${innerNeedle}
+    <g class="needle" filter="url(#lume)" transform="rotate(${angleFor(0)} 150 150)">
+      <polygon points="150,150 120,148.2 120,151.8" fill="#e8e4d8"/>
+      <polygon points="256,150 162,148.6 162,151.4" fill="var(--ink)"/>
+      <polygon points="256,150 232,149.5 232,150.5" fill="var(--red)"/></g>
+    <circle cx="150" cy="150" r="15" fill="url(#hub)"/>
+    <circle cx="150" cy="150" r="4.5" fill="#141414"/>
+  </svg>`;
+}
+
+const CPU={el:'#gauge-cpu',
+  cfg:{faceName:'CPU',faceUnit:'× 10 %  OVERALL',redBand:[0.85,1],minorCount:50,inner:true,
+       majors:[0,1,2,3,4,5,6,7,8,9,10].map(n=>({f:n/10,label:String(n)}))},
+  fmt:v=>({val:Math.round(v*100)+'<span class="u">%</span>',sub:'peak '+Math.round((CPU.peak||0)*100)+'%'})};
+const MEM={el:'#gauge-mem',
+  cfg:{faceName:'MEM',faceUnit:'% PRESSURE',redBand:[0.85,1],minorCount:50,
+       majors:[0,20,40,60,80,100].map(n=>({f:n/100,label:String(n)}))},
+  fmt:v=>({val:(v*32).toFixed(1)+'<span class="u">GB</span>',sub:Math.round(v*100)+'% of 32'})};
+const DISK={el:'#gauge-disk',
+  cfg:{faceName:'DISK',faceUnit:'% FREE',redBand:[0,0.15],minorCount:40,battery:true,
+       majors:[{f:0,label:'0'},{f:0.5,label:'50'},{f:1,label:'100'}]},
+  fmt:v=>({val:Math.round(v*100)+'<span class="u">%</span>',sub:Math.round(v*995)+' GB free'})};
+
+function mount(g){const host=document.querySelector(g.el+' .dial');host.innerHTML=buildDial(g.cfg);
+  g.needle=host.querySelector('.needle');g.needle2=host.querySelector('.needle2');
+  g.innerfill=host.querySelector('.innerfill');
+  g.battfill=host.querySelector('.battfill');g.battbolt=host.querySelector('.battbolt');g.battpct=host.querySelector('.battpct');
+  g.valEl=document.querySelector(g.el+' .val');g.subEl=document.querySelector(g.el+' .sub');g.cur=0;}
+[MEM,CPU,DISK].forEach(mount);
+const setN=(g,f)=>g.needle.setAttribute('transform',`rotate(${angleFor(Math.max(0,Math.min(1,f)))} 150 150)`);
+
+const targets={mem:0.34,disk:66/995};
+const battery={charge:1.0,charging:true};   // real: 100%, on AC
+let tMEM=0.34,frame=0;
+const coreLoads=Array.from({length:10},()=>0.1),coreTargets=Array.from({length:10},()=>0.1);
+CPU.peak=0.1;
+function tick(){
+  frame++;
+  if(frame%20===0){for(let i=0;i<10;i++){const s=(i%4===0);
+    coreTargets[i]=Math.max(0.02,Math.min(0.99,coreTargets[i]+(Math.random()-0.5)*(s?1.3:0.4)));
+    if(s&&Math.random()<0.3)coreTargets[i]=0.85+Math.random()*0.14;}
+    tMEM=Math.max(0.22,Math.min(0.6,tMEM+(Math.random()-0.5)*0.12));}
+  for(let i=0;i<10;i++){const s=(i%4===0);coreLoads[i]+=(coreTargets[i]-coreLoads[i])*(s?0.35:0.12);}
+  const overall=coreLoads.reduce((a,b)=>a+b,0)/10,peak=Math.max(...coreLoads);
+  CPU.cur+=(overall-CPU.cur)*0.06;CPU.peak+=(peak-CPU.peak)*0.45;
+  MEM.cur+=(tMEM-MEM.cur)*0.05;DISK.cur+=(targets.disk-DISK.cur)*0.04;
+  setN(MEM,MEM.cur);setN(CPU,CPU.cur);setN(DISK,DISK.cur);
+  CPU.needle2.setAttribute('transform',`rotate(${angleFor(Math.min(1,CPU.peak))} 150 150)`);
+  CPU.innerfill.setAttribute('d',arcPath(76,0,Math.max(0.002,Math.min(1,CPU.peak))));
+  CPU.innerfill.setAttribute('stroke',CPU.peak>0.85?'var(--red)':'var(--amber)');
+
+  const bc=battery.charge, low=bc<0.15;
+  DISK.battfill.setAttribute('width',(21*bc).toFixed(1));
+  DISK.battfill.setAttribute('fill',low?'var(--red)':'#37c85a');
+  DISK.battbolt.setAttribute('opacity',battery.charging?1:0);
+  DISK.battpct.textContent=Math.round(bc*100)+'%';
+
+  const c=CPU.fmt(CPU.cur),m=MEM.fmt(MEM.cur),d=DISK.fmt(DISK.cur);
+  CPU.valEl.innerHTML=c.val;CPU.subEl.textContent=c.sub;MEM.valEl.innerHTML=m.val;MEM.subEl.textContent=m.sub;
+  DISK.valEl.innerHTML=d.val;DISK.subEl.textContent=d.sub;DISK.valEl.style.color=DISK.cur<0.12?'var(--red)':'var(--ink)';
+  requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
+function clk(){const n=new Date();document.getElementById('clock').innerHTML='<b>'+n.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})+'</b>';}
+clk();setInterval(clk,10000);
+</script>
