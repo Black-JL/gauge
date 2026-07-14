@@ -372,7 +372,7 @@ async function poll(){
 poll(); setInterval(poll,1000);
 
 function animate(){
-  CPU.cur+=(tgt.overall-CPU.cur)*0.12; CPU.peak+=(tgt.peak-CPU.peak)*0.30;
+  CPU.cur+=(tgt.overall-CPU.cur)*0.22; CPU.peak+=(tgt.peak-CPU.peak)*0.42;
   MEM.cur+=(tgt.mem-MEM.cur)*0.12; DISK.cur+=(tgt.disk-DISK.cur)*0.12;
   setN(MEM,MEM.cur);setN(CPU,CPU.cur);setN(DISK,DISK.cur);
   CPU.needle2.setAttribute('transform','rotate('+angleFor(Math.min(1,CPU.peak))+' 150 150)');

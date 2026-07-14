@@ -90,19 +90,19 @@ DISPLAY_HTML = r"""<!doctype html><html><head>
   body{display:flex;flex-direction:column;align-items:center;justify-content:center;
     font-family:'Futura','Helvetica Neue',sans-serif;font-weight:300;color:#e8dcbf;
     -webkit-font-smoothing:antialiased;-webkit-user-select:none;user-select:none;}
-  .brand{letter-spacing:.6em;font-size:1.7vmin;color:#a3844e;text-transform:uppercase;
-    padding-left:.6em;margin-bottom:2.6vmin;text-shadow:0 0 12px rgba(255,181,82,.35);}
-  .rack{display:flex;align-items:flex-start;justify-content:center;gap:2.4vw;width:96vw;}
-  .meter{display:flex;flex-direction:column;align-items:center;flex:1;max-width:33vw;}
-  .panel{width:100%;filter:drop-shadow(0 0 3vmin rgba(255,150,40,.18)) drop-shadow(0 2vmin 3vmin rgba(0,0,0,.6));}
+  .brand{letter-spacing:.6em;font-size:12px;color:#a3844e;text-transform:uppercase;
+    padding-left:.6em;margin-bottom:22px;text-shadow:0 0 12px rgba(255,181,82,.35);}
+  .rack{display:flex;align-items:flex-start;justify-content:center;gap:26px;}
+  .meter{display:flex;flex-direction:column;align-items:center;width:min(308px,30vw);}
+  .panel{width:100%;filter:drop-shadow(0 0 26px rgba(255,150,40,.18)) drop-shadow(0 16px 26px rgba(0,0,0,.6));}
   svg{display:block;width:100%;height:auto;}
-  .readout{margin-top:1.6vmin;text-align:center;}
-  .val{font-size:3.4vmin;letter-spacing:.05em;color:#f3e8cb;font-variant-numeric:tabular-nums;
-    text-shadow:0 0 1.4vmin rgba(255,181,82,.35);}
+  .readout{margin-top:14px;text-align:center;}
+  .val{font-size:23px;letter-spacing:.05em;color:#f3e8cb;font-variant-numeric:tabular-nums;
+    text-shadow:0 0 10px rgba(255,181,82,.35);}
   .val .u{font-size:.5em;color:#a3844e;letter-spacing:.14em;margin-left:.25em;text-shadow:none;}
-  .sub{font-size:1.5vmin;letter-spacing:.24em;color:#8a7448;text-transform:uppercase;margin-top:.7vmin;}
-  .foot{position:fixed;bottom:2.2vmin;left:0;right:0;text-align:center;
-    font-size:1.4vmin;letter-spacing:.3em;color:#8a7448;text-transform:uppercase;}
+  .sub{font-size:10px;letter-spacing:.24em;color:#8a7448;text-transform:uppercase;margin-top:6px;}
+  .foot{position:fixed;bottom:20px;left:0;right:0;text-align:center;
+    font-size:10.5px;letter-spacing:.3em;color:#8a7448;text-transform:uppercase;}
   .foot b{color:#e8dcbf;font-weight:400;}
 </style></head><body>
 <div class="brand">Gauge</div>

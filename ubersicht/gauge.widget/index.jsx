@@ -59,7 +59,7 @@ const CPU_FACE = face(CPU), MEM_FACE = face(MEM), DISK_FACE = face(DISK);
 
 const needleStyle = (deg) => ({
   transformBox: "view-box", transformOrigin: "150px 150px",
-  transform: `rotate(${deg}deg)`, transition: "transform 0.9s ease-out",
+  transform: `rotate(${deg}deg)`, transition: "transform 0.28s ease-out",
 });
 
 function Dial({ faceHtml, cls, f, peak, batt, val, unit, sub }) {
