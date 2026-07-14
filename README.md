@@ -44,10 +44,12 @@ requirement for the PyObjC dependency.
 ## Always-on display (old iPad / phone / any browser)
 
 `gauge_server.py` is a persistent, LAN-reachable server that shows a full-screen
-version of the dials — point an old iPad or phone at it and leave it on as a
-dedicated dashboard. It binds `0.0.0.0` on a fixed port (default 8770), never
-auto-quits, and uses a compatibility-friendly page (XHR, SVG-attribute needles)
-that works back to iOS 10 (iPad mini 2+).
+**VU-meter** dashboard — point an old iPad or phone at it and leave it on as a
+dedicated display. CPU uses a dual reading (black needle = overall load, red
+needle = peak core) plus a PEAK lamp; the disk meter carries the battery
+indicator. It binds `0.0.0.0` on a fixed port (default 8770), never auto-quits,
+and uses a compatibility-friendly page (XHR, SVG-attribute needles) that works
+back to iOS 10 (iPad mini 2+).
 
 ```sh
 ./install_server.sh        # runs it as a LaunchAgent (starts at login, auto-restarts)
