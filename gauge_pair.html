@@ -1,0 +1,167 @@
+<meta charset="utf-8">
+<title>GAUGE — chronograph + clock</title>
+<style>
+  :root{--ink:#e8e6df; --lume:#cfeee0; --dim:#4c4c4c; --dim2:#7c7c76; --red:#e8321f;}
+  html,body{height:100%;margin:0;}
+  body{background:radial-gradient(120% 120% at 50% 40%,#0d0d0e 0%,#060606 60%,#000 100%);
+    color:var(--ink);font-family:'Helvetica Neue','Futura',system-ui,sans-serif;font-weight:300;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    -webkit-font-smoothing:antialiased;user-select:none;overflow:hidden;}
+  .brand{letter-spacing:.6em;font-size:12px;color:var(--dim2);text-transform:uppercase;margin-bottom:26px;padding-left:.6em;}
+  .row{display:flex;align-items:flex-start;justify-content:center;gap:52px;}
+  .col{display:flex;flex-direction:column;align-items:center;}
+  .watch{width:396px;height:396px;filter:drop-shadow(0 22px 44px rgba(0,0,0,.75));}
+  svg{display:block;width:100%;height:100%;}
+  .cap{margin-top:22px;font-size:10px;letter-spacing:.34em;color:var(--dim2);text-transform:uppercase;}
+  .dig{margin-top:8px;font-size:11px;letter-spacing:.18em;color:var(--dim);font-variant-numeric:tabular-nums;text-transform:uppercase;}
+  .dig b{color:var(--ink);font-weight:400;}
+</style>
+
+<div class="brand">Gauge</div>
+<div class="row">
+  <div class="col"><div class="watch"><div id="dial-gauge"></div></div>
+    <div class="cap">System</div><div class="dig" id="dg">—</div></div>
+  <div class="col"><div class="watch"><div id="dial-clock"></div></div>
+    <div class="cap">Time</div><div class="dig" id="dt">—</div></div>
+</div>
+
+<script>
+const P=(cx,cy,r,deg)=>[cx+r*Math.cos(deg*Math.PI/180),cy+r*Math.sin(deg*Math.PI/180)];
+const aF=(f,start=135,sweep=270)=>start+f*sweep;
+function arc(cx,cy,r,f0,f1,start=135,sweep=270){
+  const a0=aF(f0,start,sweep),a1=aF(f1,start,sweep),[x0,y0]=P(cx,cy,r,a0),[x1,y1]=P(cx,cy,r,a1);
+  return `M ${x0} ${y0} A ${r} ${r} 0 ${(a1-a0)>180?1:0} 1 ${x1} ${y1}`;}
+
+// ---- sub-register (small dial) ----
+function subDial(cx,cy,R,cfg,sfx){
+  let ticks='';
+  for(let i=0;i<=cfg.majors;i++){const f=i/cfg.majors,a=aF(f);
+    const inRed=cfg.redBand&&f>=cfg.redBand[0]-1e-6&&f<=cfg.redBand[1]+1e-6;
+    const [x0,y0]=P(cx,cy,R-2,a),[x1,y1]=P(cx,cy,R-8,a);
+    ticks+=`<line x1="${x0}" y1="${y0}" x2="${x1}" y2="${y1}" stroke="${inRed?'var(--red)':'var(--dim2)'}" stroke-width="1.3"/>`;}
+  const red=cfg.redBand?`<path d="${arc(cx,cy,R-1,cfg.redBand[0],cfg.redBand[1])}" stroke="var(--red)" stroke-width="2" fill="none"/>`:'';
+  const bolt=cfg.bolt?`<path d="M ${cx+1} ${cy+6} L ${cx-3} ${cy+13} L ${cx} ${cy+13} L ${cx-1.5} ${cy+19} L ${cx+4} ${cy+11} L ${cx+0.5} ${cy+11} Z" fill="var(--lume)" transform="translate(0 -2)"/>`:'';
+  return `
+    <circle cx="${cx}" cy="${cy}" r="${R}" fill="#0a0a0a" stroke="#242424" stroke-width="1"/>
+    <circle cx="${cx}" cy="${cy}" r="${R-3}" fill="url(#subface_${sfx})"/>
+    ${red}${ticks}${bolt}
+    <text x="${cx}" y="${cy-R*0.42}" text-anchor="middle" font-size="8" letter-spacing="1.6" fill="var(--dim2)">${cfg.name}</text>
+    <g class="${cfg.hand}" transform="rotate(${aF(0)} ${cx} ${cy})">
+      <polygon points="${cx+R-10},${cy} ${cx-8},${cy-1.4} ${cx-8},${cy+1.4}" fill="var(--ink)"/></g>
+    <circle cx="${cx}" cy="${cy}" r="3" fill="#cfcfcf"/><circle cx="${cx}" cy="${cy}" r="1.1" fill="#000"/>`;
+}
+
+// shared chassis pieces
+function chassis(){
+  let markers='',minute='';
+  for(let i=0;i<120;i++){const a=i*3,p0=P(200,200,192,a),p1=P(200,200,i%10===0?185:188,a);
+    minute+=`<line x1="${p0[0]}" y1="${p0[1]}" x2="${p1[0]}" y2="${p1[1]}" stroke="#2c2c2c" stroke-width="${i%10===0?1.1:0.6}"/>`;}
+  for(let h=0;h<12;h++){if(h===3||h===6||h===9)continue;const a=h*30-90,[x0,y0]=P(200,200,176,a),[x1,y1]=P(200,200,164,a);
+    markers+=`<line x1="${x0}" y1="${y0}" x2="${x1}" y2="${y1}" stroke="var(--ink)" stroke-width="${h%3===0?3:2}" stroke-linecap="round"/>`;}
+  return minute+markers;
+}
+function defs(sfx){
+  return `<defs>
+    <radialGradient id="face_${sfx}" cx="50%" cy="42%" r="70%">
+      <stop offset="0%" stop-color="#141414"/><stop offset="70%" stop-color="#0a0a0a"/><stop offset="100%" stop-color="#020202"/></radialGradient>
+    <radialGradient id="subface_${sfx}" cx="50%" cy="40%" r="70%">
+      <stop offset="0%" stop-color="#101010"/><stop offset="100%" stop-color="#040404"/></radialGradient>
+    <filter id="hsh_${sfx}" x="-40%" y="-40%" width="180%" height="180%">
+      <feDropShadow dx="0" dy="1.2" stdDeviation="1.6" flood-color="#000" flood-opacity="0.6"/></filter></defs>`;
+}
+function shell(sfx,inner){
+  return `<svg viewBox="0 0 400 400">${defs(sfx)}
+    <circle cx="200" cy="200" r="198" fill="#161616"/>
+    <circle cx="200" cy="200" r="192" fill="#080808" stroke="#2a2a2a" stroke-width="1"/>
+    <circle cx="200" cy="200" r="190" fill="url(#face_${sfx})"/>
+    ${chassis()}${inner}</svg>`;
+}
+
+// ---- left watch: system gauge ----
+function buildGauge(){
+  let mainTicks='',mainNums='';
+  for(let i=0;i<=50;i++){const f=i/50,a=aF(f),[x0,y0]=P(200,200,158,a),[x1,y1]=P(200,200,i%5===0?146:152,a);
+    mainTicks+=`<line x1="${x0}" y1="${y0}" x2="${x1}" y2="${y1}" stroke="${f>=0.85?'var(--red)':'#585858'}" stroke-width="${i%5===0?1.6:0.9}"/>`;}
+  [0,40,60,100].forEach(n=>{const f=n/100,a=aF(f),[tx,ty]=P(200,200,132,a);
+    mainNums+=`<text x="${tx}" y="${ty+4}" text-anchor="middle" font-size="13" font-weight="300" fill="${f>=0.85?'var(--red)':'var(--ink)'}">${n}</text>`;});
+  const inner=`
+    <path d="${arc(200,200,160,0.85,1)}" stroke="var(--red)" stroke-width="3" fill="none"/>${mainTicks}${mainNums}
+    <text x="200" y="96" text-anchor="middle" font-size="12" letter-spacing="5" fill="var(--ink)">GAUGE</text>
+    <text x="200" y="110" text-anchor="middle" font-size="6.5" letter-spacing="3" fill="var(--dim2)">SYSTEM CHRONOMETER</text>
+    <text x="200" y="150" text-anchor="middle" font-size="8" letter-spacing="3" fill="var(--dim2)">CPU · OVERALL %</text>
+    ${subDial(105,200,44,{name:'MEMORY',majors:10,redBand:[0.85,1],hand:'memHand'},'g')}
+    ${subDial(295,200,44,{name:'DISK',majors:10,redBand:[0,0.15],hand:'diskHand'},'g')}
+    ${subDial(200,295,44,{name:'BATTERY',majors:10,redBand:[0,0.12],hand:'battHand',bolt:true},'g')}
+    <g class="cpuMain" filter="url(#hsh_g)" transform="rotate(${aF(0)} 200 200)">
+      <polygon points="150,200 194,197.6 194,202.4" fill="var(--lume)"/>
+      <polygon points="184,200 150,199 150,201" fill="var(--lume)"/></g>
+    <g class="cpuPeak" transform="rotate(${aF(0)} 200 200)">
+      <polygon points="164,200 214,199.2 214,200.8" fill="var(--red)"/>
+      <polygon points="214,200 224,199.4 224,200.6" fill="var(--red)"/></g>
+    <circle cx="200" cy="200" r="7" fill="#d8d8d8"/><circle cx="200" cy="200" r="2.6" fill="#000"/>`;
+  document.getElementById('dial-gauge').innerHTML=shell('g',inner);
+}
+
+// ---- right watch: time clock (same design) ----
+function buildClock(){
+  const inner=`
+    <text x="200" y="96" text-anchor="middle" font-size="12" letter-spacing="5" fill="var(--ink)">GAUGE</text>
+    <text x="200" y="110" text-anchor="middle" font-size="6.5" letter-spacing="3" fill="var(--dim2)">CHRONOMETER</text>
+    ${subDial(105,200,44,{name:'24H',majors:8,hand:'h24Hand'},'c')}
+    ${subDial(295,200,44,{name:'DATE',majors:6,hand:'dateHand'},'c')}
+    ${subDial(200,295,44,{name:'DAY',majors:7,hand:'dayHand'},'c')}
+    <g class="hourH"><polygon points="200,112 196,150 197.5,206 202.5,206 204,150" fill="var(--lume)"/></g>
+    <g class="minH"><polygon points="200,70 197,150 199,210 201,210 203,150" fill="var(--lume)"/></g>
+    <g class="secH"><rect x="199.4" y="66" width="1.2" height="152" fill="var(--red)"/>
+      <circle cx="200" cy="200" r="3.2" fill="var(--red)"/></g>
+    <circle cx="200" cy="200" r="6" fill="#d8d8d8"/><circle cx="200" cy="200" r="2.4" fill="#000"/>`;
+  document.getElementById('dial-clock').innerHTML=shell('c',inner);
+}
+buildGauge();buildClock();
+
+const el=c=>document.querySelector('.'+c);
+const setSub=(node,cx,cy,f)=>node.setAttribute('transform',`rotate(${aF(Math.max(0,Math.min(1,f)))} ${cx} ${cy})`);
+const setC=(node,f)=>node.setAttribute('transform',`rotate(${aF(Math.max(0,Math.min(1,f)))} 200 200)`);
+const rot=(node,deg)=>node.setAttribute('transform',`rotate(${deg} 200 200)`);
+
+// gauge (demo) animation
+const memH=el('memHand'),diskH=el('diskHand'),battH=el('battHand'),cpuM=el('cpuMain'),cpuP=el('cpuPeak');
+let mem=0.34,disk=66/995,batt=1.0,cpu=0.1,peak=0.1,tMEM=0.34,frame=0;
+const coreLoads=Array.from({length:10},()=>0.1),coreTargets=Array.from({length:10},()=>0.1);
+function tickGauge(){
+  frame++;
+  if(frame%20===0){for(let i=0;i<10;i++){const s=(i%4===0);
+    coreTargets[i]=Math.max(0.02,Math.min(0.99,coreTargets[i]+(Math.random()-0.5)*(s?1.3:0.4)));
+    if(s&&Math.random()<0.3)coreTargets[i]=0.85+Math.random()*0.14;}
+    tMEM=Math.max(0.22,Math.min(0.6,tMEM+(Math.random()-0.5)*0.12));}
+  for(let i=0;i<10;i++){const s=(i%4===0);coreLoads[i]+=(coreTargets[i]-coreLoads[i])*(s?0.35:0.12);}
+  const overall=coreLoads.reduce((a,b)=>a+b,0)/10,pk=Math.max(...coreLoads);
+  cpu+=(overall-cpu)*0.06;peak+=(pk-peak)*0.45;mem+=(tMEM-mem)*0.05;
+  setC(cpuM,cpu);setC(cpuP,peak);
+  setSub(memH,105,200,mem);setSub(diskH,295,200,disk);setSub(battH,200,295,batt);
+  document.getElementById('dg').innerHTML='CPU <b>'+Math.round(cpu*100)+'%</b> · MEM <b>'+(mem*32).toFixed(1)
+    +'GB</b> · DISK <b>'+Math.round(disk*100)+'%</b> · BATT <b>'+Math.round(batt*100)+'%</b>';
+  requestAnimationFrame(tickGauge);
+}
+requestAnimationFrame(tickGauge);
+
+// clock (real time)
+const hourH=el('hourH'),minH=el('minH'),secH=el('secH');
+const h24=el('h24Hand'),dateH=el('dateHand'),dayH=el('dayHand');
+const DAYS=['SUN','MON','TUE','WED','THU','FRI','SAT'],MON=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+function tickClock(){
+  const n=new Date();
+  const s=n.getSeconds()+n.getMilliseconds()/1000;
+  const m=n.getMinutes()+s/60;
+  const h=(n.getHours()%12)+m/60;
+  rot(hourH,h/12*360);rot(minH,m/60*360);rot(secH,s/60*360);
+  setSub(h24,105,200,(n.getHours()+m/60)/24);
+  setSub(dateH,295,200,(n.getDate()-1)/30);
+  setSub(dayH,200,295,n.getDay()/6);
+  const p2=x=>(x<10?'0':'')+x;
+  document.getElementById('dt').innerHTML='<b>'+p2(n.getHours())+':'+p2(n.getMinutes())+':'+p2(n.getSeconds())
+    +'</b> · '+DAYS[n.getDay()]+' '+p2(n.getDate())+' '+MON[n.getMonth()];
+  requestAnimationFrame(tickClock);
+}
+requestAnimationFrame(tickClock);
+</script>
