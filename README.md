@@ -41,6 +41,21 @@ full address bar/toolbar — functional, but it reads as a web page, not an app.
 A truly native window would use a WebView (PyObjC), trading the zero-Chrome
 requirement for the PyObjC dependency.
 
+## Desktop widget (Übersicht)
+
+`ubersicht/gauge.widget/` is a live desktop widget — the same dials, pinned to
+your desktop, updating every second with CSS-eased needles. It adds a live
+**network throughput** row (↓/↑ current rate, read from interface byte-counter
+deltas — this is *current activity*, not a speed test).
+
+```sh
+brew install --cask ubersicht     # one-time, if not already installed
+./install_widget.sh               # copies the widget in and launches Übersicht
+```
+
+The widget's `gauge_stats.py` is a self-contained one-shot JSON emitter (same
+stdlib approach as the app). Drag the widget to reposition; Übersicht remembers.
+
 ## Design mockups
 
 The `gauge_*_*.html` files are **self-contained design mockups** (no build step
