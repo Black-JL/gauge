@@ -1,0 +1,35 @@
+<!doctype html><html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Gauge</title>
+<style>
+ *{margin:0;padding:0;box-sizing:border-box}
+ html,body{height:100%;background:radial-gradient(120% 120% at 50% 30%,#161616 0%,#0a0a0a 60%,#040404 100%);overflow:hidden}
+ body{display:flex;flex-direction:column;align-items:center;justify-content:center;
+   font-family:'Helvetica Neue',Inter,system-ui,sans-serif;font-weight:300;color:#fff;
+   -webkit-font-smoothing:antialiased;-webkit-user-select:none;user-select:none}
+ .brand{letter-spacing:.62em;font-size:12px;color:#8c8c8c;text-transform:uppercase;padding-left:.62em}
+ .sub{font-size:11px;letter-spacing:.26em;color:#565656;text-transform:uppercase;margin-top:8px;margin-bottom:34px}
+ .grid{display:grid;grid-template-columns:repeat(2,220px);grid-gap:20px}
+ a.card{display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-end;
+   height:150px;padding:20px;border-radius:18px;text-decoration:none;color:#fff;
+   background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);
+   transition:transform .15s ease,border-color .15s ease,background .15s ease;position:relative;overflow:hidden}
+ a.card:hover{transform:translateY(-3px);border-color:rgba(255,255,255,.28);background:rgba(255,255,255,.06)}
+ .dot{position:absolute;top:20px;left:20px;width:36px;height:36px;border-radius:50%}
+ .d-clean{background:radial-gradient(circle at 40% 35%,#333,#000);border:1px solid #2a2a2a}
+ .d-vintage{background:radial-gradient(circle at 42% 34%,#f2f2f2,#5f5f5f 55%,#1e1e1e);}
+ .d-pair{background:radial-gradient(circle at 50% 42%,#141414,#020202);border:1px solid #2a2a2a}
+ .d-vu{background:radial-gradient(circle at 50% 80%,#fff4d8,#d8c79c);}
+ .nm{font-size:16px;font-weight:400;letter-spacing:.02em}
+ .ds{font-size:10.5px;letter-spacing:.12em;color:#8c8c8c;text-transform:uppercase;margin-top:5px}
+</style></head><body>
+<div class="brand">Gauge</div>
+<div class="sub">Choose a display</div>
+<div class="grid">
+  <a class="card" href="/vintage"><span class="dot d-vintage"></span><span class="nm">Vintage</span><span class="ds">997 chrome cluster</span></a>
+  <a class="card" href="/minimal"><span class="dot d-clean"></span><span class="nm">Clean</span><span class="ds">Minimal three-dial</span></a>
+  <a class="card" href="/pair"><span class="dot d-pair"></span><span class="nm">Watch + Clock</span><span class="ds">Chronograph &amp; time</span></a>
+  <a class="card" href="/vu"><span class="dot d-vu"></span><span class="nm">VU Meters</span><span class="ds">Warm analog meters</span></a>
+</div>
+</body></html>
