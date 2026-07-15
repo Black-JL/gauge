@@ -6,17 +6,30 @@ analog meters.
 
 ## The app
 
-`gauge.py` is the **live app** — a self-contained macOS system monitor built
-on the minimal design (`gauge_A_minimal.html`). No third-party dependencies:
-per-core CPU is read from the mach kernel via `ctypes`, memory from `vm_stat`,
-disk from `os`, battery from `pmset`. It serves a tiny local web UI and opens
-it in a chrome-less window; the server auto-quits a few seconds after that
-window closes.
+The stat engine is a self-contained, dependency-free macOS system monitor: per-core
+CPU is read from the mach kernel via `ctypes`, memory from `vm_stat`, disk from `os`,
+battery from `pmset`. It serves a tiny local web UI over stdlib `http.server`.
+
+**`Gauge.app` launches a chooser.** Double-clicking it ensures the local server
+is running, then opens a chrome-less Chrome window with a **chooser** that lets
+you pick one of four live displays:
+
+| Choice | Route | Look |
+|--------|-------|------|
+| **Vintage** | `/vintage` | Porsche 997 chrome three-dial cluster |
+| **Clean** | `/minimal` | Minimal white-on-black three-dial |
+| **Watch + Clock** | `/pair` | System chronograph + a real-time clock |
+| **VU Meters** | `/vu` | Warm analog VU meters |
+
+All four views are driven live from `/stats` and share one render engine
+(`web/core.js`); the thin per-view shells live in `web/`. `gauge.py` remains
+runnable directly for just the minimal windowed dashboard (auto-quits a few
+seconds after its window closes).
 
 ### Two forms
 
-- **`Gauge.app`** — the windowed dashboard (three dials in a chrome-less
-  window). Pure stdlib; runs on the system `/usr/bin/python3`.
+- **`Gauge.app`** — the chooser + the four chrome-less dashboards above.
+  Pure stdlib; runs on the system `/usr/bin/python3`.
 - **`GaugeBar.app`** — a native **menu-bar** app (`NSStatusBar`). The menu bar
   shows live CPU; the dropdown breaks out CPU (overall + peak core), memory,
   disk, and battery, plus **Open Dashboard** and **Quit**. Requires PyObjC
@@ -43,13 +56,14 @@ requirement for the PyObjC dependency.
 
 ## Always-on display (old iPad / phone / any browser)
 
-`gauge_server.py` is a persistent, LAN-reachable server that shows a full-screen
-**VU-meter** dashboard — point an old iPad or phone at it and leave it on as a
-dedicated display. CPU uses a dual reading (black needle = overall load, red
-needle = peak core) plus a PEAK lamp; the disk meter carries the battery
-indicator. It binds `0.0.0.0` on a fixed port (default 8770), never auto-quits,
-and uses a compatibility-friendly page (XHR, SVG-attribute needles) that works
-back to iOS 10 (iPad mini 2+).
+`gauge_server.py` is a persistent, LAN-reachable server that serves the same
+**chooser** and all four live views (`/`, `/minimal`, `/vintage`, `/vu`,
+`/pair`) plus the `/stats` JSON feed — point an old iPad or phone at it and pick
+a display, then leave it on as a dedicated screen. The VU view's CPU uses a dual
+reading (black needle = overall load, red needle = peak core) plus a PEAK lamp;
+the disk meter carries the battery indicator. It binds `0.0.0.0` on a fixed port
+(default 8770), never auto-quits, and uses compatibility-friendly pages (XHR,
+SVG-attribute needles) that work back to iOS 10 (iPad mini 2+).
 
 ```sh
 ./install_server.sh        # runs it as a LaunchAgent (starts at login, auto-restarts)
@@ -110,4 +124,8 @@ Target machine for the real values shown: **Apple M1 Pro, 10 cores (8P/2E),
 - [x] Wire the primary design to **live system data** (pure Python stdlib).
 - [x] Package as a double-clickable `.app` that launches from Finder.
 - [x] Install to `/Applications`; add a native menu-bar app (`GaugeBar.app`).
+- [x] Always-on LAN server for an old iPad; VU-meter display.
+- [x] **Chooser** launcher — pick 1 of 4 live views (vintage / clean / watch+clock / VU).
 - [ ] Optional: code-sign / notarize; launch-at-login; menu-bar mini-graphs.
+
+See `PLAN.md` for the concept + tools tried, and `PROJECT_LOG.md` for the build history.
