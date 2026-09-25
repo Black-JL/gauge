@@ -1,9 +1,15 @@
 # Gauge
 
 <p align="center">
-  <img src="docs/gauge.png" alt="Gauge's four live views in a 2x2 grid: Vintage, Clean, Watch + Clock, and VU Meters" width="720">
+  <img src="docs/pair.png" alt="Gauge Watch + Clock view: a system chronograph beside a real-time clock" width="100%">
 </p>
-<p align="center"><sub>Vintage · Clean<br>Watch + Clock · VU Meters<br>All four views running on real system data</sub></p>
+
+<p align="center">
+  <img src="docs/vintage.png" alt="Vintage view" width="32%">
+  <img src="docs/minimal.png" alt="Clean view" width="32%">
+  <img src="docs/vu.png" alt="VU Meters view" width="32%">
+</p>
+<p align="center"><sub>Watch + Clock (top) · Vintage · Clean · VU Meters, all running on real system data</sub></p>
 
 A minimal, beautiful macOS system monitor — CPU, memory, and disk shown as
 vintage-instrument dials. Inspired by Porsche gauge clusters and classic
