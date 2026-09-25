@@ -1,5 +1,16 @@
 # Gauge
 
+<p align="center">
+  <img src="docs/vintage.png" alt="Gauge — Vintage view: CPU, memory, and disk as Porsche-style chrome dials" width="100%">
+</p>
+
+<p align="center">
+  <img src="docs/minimal.png" alt="Clean view" width="32%">
+  <img src="docs/pair.png" alt="Watch + Clock view" width="32%">
+  <img src="docs/vu.png" alt="VU Meters view" width="32%">
+</p>
+<p align="center"><sub>Vintage (top) · Clean · Watch + Clock · VU Meters — all live on real system data</sub></p>
+
 A minimal, beautiful macOS system monitor — CPU, memory, and disk shown as
 vintage-instrument dials. Inspired by Porsche gauge clusters and classic
 analog meters.
