@@ -15,6 +15,13 @@ A minimal, beautiful macOS system monitor — CPU, memory, and disk shown as
 vintage-instrument dials. Inspired by Porsche gauge clusters and classic
 analog meters.
 
+> **Built for a second screen.** Gauge can run locally in a window on your Mac,
+> but it's designed to live on a **dedicated, network-attached display** — an
+> old iPad, a Raspberry Pi with a small screen, a spare phone, or anything else
+> with a web browser. Your Mac serves the dials over your local network; the
+> other device just shows them, always on, like an instrument cluster beside
+> your desk. See [Always-on display](#always-on-display-ipad-raspberry-pi-phone-any-browser).
+
 ## The app
 
 The stat engine is a self-contained, dependency-free macOS system monitor: per-core
@@ -65,7 +72,7 @@ full address bar/toolbar — functional, but it reads as a web page, not an app.
 A truly native window would use a WebView (PyObjC), trading the zero-Chrome
 requirement for the PyObjC dependency.
 
-## Always-on display (old iPad / phone / any browser)
+## Always-on display (iPad, Raspberry Pi, phone, any browser)
 
 `gauge_server.py` is a persistent, LAN-reachable server that serves the same
 **chooser** and all four live views (`/`, `/minimal`, `/vintage`, `/vu`,
@@ -85,6 +92,16 @@ Then on the iPad, in Safari, open `http://<mac-ip>:8770/` and **Add to Home
 Screen** for a chrome-less full-screen view. Set **Auto-Lock → Never** and keep
 it on a charger. Requires the Mac to be on and running the server; both devices
 on the same Wi-Fi. Stop with `launchctl bootout gui/$(id -u)/com.jaredblack.gaugeserver`.
+
+On a **Raspberry Pi** (or any small Linux box with a screen), open the same URL
+in Chromium's kiosk mode for a borderless full-screen dashboard:
+
+```sh
+chromium-browser --kiosk --noerrdialogs http://<mac-ip>:8770/vu
+```
+
+Note that the server has no login: anyone on your local network can view your
+Mac's system stats at that address. Run it only on a network you trust.
 
 ## Desktop widget (Übersicht)
 
